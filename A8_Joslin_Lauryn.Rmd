@@ -1,0 +1,257 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Assignment 8 Beyond Metabarcoding
+
+by Lauryn Joslin
+
+Gitub: laurynjoslin
+
+Garlic mustard (Alliaris petiolata) is an invasive plant that is spreading accross ontario. When a non-native plant is successful in it's introduced range, it is important to look into the impact it is having on the introduced ecosystem, as the lack of its native predators and competittors can cause it to outcompete local plants. This can lead to local plants struggling to be successful, and ultimately lower plant diversity. Changes in plant diversity in turn effect other organisms that interacted with them. This dataset was collected at Queen's university biological station in eastern Ontario. It includes information on the different plant species growing in that area, including populations with and without garlic mustard. This could help begin to explore the impact garlic mustard has on plant diversity. 
+
+
+
+Loading required library 
+```{r}
+library(vegan)
+library(ggplot2)
+library(ggtree)
+library(ape)
+library(dplyr)
+```
+
+The following code chunks are background setup/ rough work needed before making the graphs which visualize the answers 
+
+```{r}
+setwd("/Users/laurynjoslin/desktop")
+```
+
+```{r}
+dat <- read.csv("FloristicSurvey.csv")
+```
+
+```{r}
+community <- dat[,10:ncol(dat)]
+```
+
+```{r}
+head(community)
+```
+```{r}
+community_matrix <- as.matrix(community)
+```
+
+```{r}
+set.seed(123)
+nmds = metaMDS(community_matrix, distance = "bray")
+nmds
+```
+
+
+```{r}
+plot(nmds)
+```
+
+```{r}
+data.scores = as.data.frame(scores(nmds))
+```
+
+```{r}
+data.scores$Quadrate <- dat$Quadrate
+data.scores$Population <- dat$Population
+data.scores$Location <- dat$Location 
+```
+
+```{r}
+data.scores$Population <- as.character(data.scores$Population)
+```
+
+
+
+```{r}
+head(data.scores)
+```
+
+```{r}
+dat$bin.silique <- ifelse(dat$Sillique > 1, 1, 0)
+dat$bin.claytonia <- ifelse(dat$Claytonia_virginiana > 1, 1, 0)
+dat$bin.anemone <- ifelse(dat$Anemone_hepatica > 1, 1, 0)
+dat$bin.gtuft <- ifelse(dat$Grass_tuft > 1, 1, 0)
+dat$bin.trillium <- ifelse(dat$Trillium_grandifolium > 1, 1, 0)
+dat$bin.ery <- ifelse(dat$Erythronium.trout.lily. > 1, 1, 0)
+dat$bin.acer <- ifelse(dat$Acer_saccharum> 1, 1, 0)
+dat$bin.dicentra <- ifelse(dat$Dicentra_cucularia > 1, 1, 0)
+dat$bin.bloodroot <- ifelse(dat$Bloodroot> 1, 1, 0)
+dat$bin.gallium <- ifelse(dat$Gallium_aparine > 1, 1, 0)
+dat$bin.ulmis <- ifelse(dat$Ulmus_americana > 1, 1, 0)
+dat$bin.uone <- ifelse(dat$Unknown_1 > 1, 1, 0)
+dat$bin.utwo <- ifelse(dat$Unknown_2 > 1, 1, 0)
+dat$bin.uthreer <- ifelse(dat$Unknown_3.rannunculaceae. > 1, 1, 0)
+dat$bin.ufour <- ifelse(dat$Unknown_4 > 1, 1, 0)
+dat$bin.ufive <- ifelse(dat$Unknown_5 > 1, 1, 0)
+dat$bin.drypo <- ifelse(dat$Dryopteris_marginalis > 1, 1, 0)
+dat$bin.ofern <- ifelse(dat$Ostrich_fern > 1, 1, 0)
+dat$bin.plantago <- ifelse(dat$Plantago_lanceolata > 1, 1, 0)
+dat$bin.violet <- ifelse(dat$Violet > 1, 1, 0)
+dat$bin.rhamfran <- ifelse(dat$Rhamnus_frangula > 1, 1, 0)
+dat$bin.raspberry <- ifelse(dat$Raspberry > 1, 1, 0)
+dat$bin.usix <- ifelse(dat$Unknown_6 > 1, 1, 0)
+dat$bin.solid <- ifelse(dat$Solidago_canadensis > 1, 1, 0)
+dat$bin.usev <- ifelse(dat$Unknown_7 > 1, 1, 0)
+dat$bin.dandy <- ifelse(dat$Dandelion > 1, 1, 0)
+dat$bin.grass <- ifelse(dat$grass > 1, 1, 0)
+dat$bin.viccia <- ifelse(dat$viccia_cracca > 1, 1, 0)
+dat$bin.hrob <- ifelse(dat$herb_robert > 1, 1, 0)
+dat$bin.ash <- ifelse(dat$thorny_ash > 1, 1, 0)
+dat$bin.rhamcath <- ifelse(dat$rhamnus_cathartica > 1, 1, 0)
+dat$bin.rhu <- ifelse(dat$rhubarb > 1, 1, 0)
+dat$bin.ueight <- ifelse(dat$Unknown_8 > 1, 1, 0)
+dat$bin.unine <- ifelse(dat$Unknown_9 > 1, 1, 0)
+dat$bin.marace <- ifelse(dat$maianthenum_racemosum> 1, 1, 0)
+```
+
+```{r}
+dat$num_species <- dat$bin.silique + 
+dat$bin.claytonia+
+dat$bin.anemone +
+dat$bin.gtuft +
+dat$bin.trillium+
+dat$bin.ery +
+dat$bin.acer +
+dat$bin.dicentra+
+dat$bin.bloodroot +
+dat$bin.gallium +
+dat$bin.ulmis+
+dat$bin.uone +
+dat$bin.utwo +
+dat$bin.uthreer +
+dat$bin.ufour +
+dat$bin.ufive +
+dat$bin.drypo +
+dat$bin.ofern +
+dat$bin.plantago +
+dat$bin.violet +
+dat$bin.rhamfran +
+dat$bin.raspberry +
+dat$bin.usix +
+dat$bin.solid +
+dat$bin.usev +
+dat$bin.dandy +
+dat$bin.grass +
+dat$bin.viccia +
+dat$bin.hrob +
+dat$bin.ash +
+dat$bin.rhamcath +
+dat$bin.rhu +
+dat$bin.ueight +
+dat$bin.unine +
+dat$bin.marace 
+```
+
+
+```{r}
+dat$Population <- as.character(dat$Population)
+```
+
+
+Question One : What effect (if any) does garlic mustard have on the plant community?
+
+
+```{r}
+theme_flocom <- function (base_size =12, base_family = ""){
+  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      axis.text = element_text(colour = "black"),
+      axis.title.x = element_text(margin = margin(t=20), size=14),
+      axis.text.x = element_text(size=12),
+      axis.title.y = element_text(size=14, angle=90),
+      axis.text.y = element_text(size=12),
+      axis.ticks = element_blank(),
+      panel.background = element_rect(fill = "white"),
+      panel.border = element_blank(),
+      plot.title= element_text(face="bold", size=24),
+      legend.text=element_text(size =14),
+      legend.title=element_text(size =14)
+    )
+}
+
+iopal <- c("#FF6700","#5438DC")
+
+ggplot(dat)+
+  geom_boxplot(aes(x = Population, y = num_species, fill = Location))+
+   scale_fill_manual(labels = c('Inside','Outside'), values = iopal)+
+  theme_flocom()+
+  labs(fill = "The location is")+
+  scale_x_discrete(name = "Population ID")+
+  scale_y_continuous(name = "Number of plant species present")
+```
+Figure 1 : Boxplot with different populations on the x axis, the number of plant species on the y axis, and different coloured boxes for whether garlic mustard grows inside or outside the quadrate. The lack of a clear trend shows that garlic mustard's presence is not a good indicator of the number of plant species present in a population. 
+
+As seen in Figure 1 garlic mustard's presence is not a good indicator of the number of plant species present in a population. In 2 populations the quadrates with or without garlic mustard did not differ in the number of plant species present. In 1 population the quadrate with garlic mustard had a higher number of plant species present compared to quadrates without garlic mustard. Finally 2 populations had quadrates with garlic mustard having a lower number of plant species present compared to quadrates without garlic mustard. There is not a clear pattern, with all these differing results between populations. Therefore garlic mustard does not seem to effect the number of plant species in the plant community. More data would have to be collected to see if it effected the health or fitness of the plants in their community, and continued monitoring to see if it just hasn't effected the number of plant species yet. 
+
+
+
+Question Two: What has a stronger effect on plant communities: the presence/absence of garlic mustard (in/out) or sampling population?
+
+
+```{r}
+theme_flocom <- function (base_size =12, base_family = ""){
+  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      axis.text = element_text(colour = "black"),
+      axis.title.x = element_text(margin = margin(t=20), size=14),
+      axis.text.x = element_text(size=12),
+      axis.title.y = element_text(size=14, angle=90),
+      axis.text.y = element_text(size=12),
+      axis.ticks = element_blank(),
+      panel.background = element_rect(fill = "white"),
+      panel.border = element_blank(),
+      plot.title= element_text(face="bold", size=24),
+      legend.text=element_text(size =14),
+      legend.title=element_text(size =14)
+    )
+}
+
+iopal <- c("#FF6700","#5438DC")
+
+ggplot(data.scores, aes(x= NMDS1, y = NMDS2))+
+  geom_point(size = 3, aes(colour = Location))+
+  scale_colour_manual(labels = c('Inside','Outside'), values = iopal)+
+  theme_flocom()+
+  labs(colour = "The location is")
+
+```
+Figure 2: NMDS plot coloured by whether the locations are inside or outside garlic mustard range. There is some grouping, but the colours are mixed together. 
+
+```{r}
+theme_flocom <- function (base_size =12, base_family = ""){
+  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    theme(
+      axis.text = element_text(colour = "black"),
+      axis.title.x = element_text(margin = margin(t=20), size=14),
+      axis.text.x = element_text(size=12),
+      axis.title.y = element_text(size=14, angle=90),
+      axis.text.y = element_text(size=12),
+      axis.ticks = element_blank(),
+      panel.background = element_rect(fill = "white"),
+      panel.border = element_blank(),
+      plot.title= element_text(face="bold", size=24),
+      legend.text=element_text(size =14),
+      legend.title=element_text(size =14)
+    )
+}
+
+poppal <- c("#447604", "#754668", "#FF6700", "#00B4D8", "#FFBA08") 
+
+ggplot(data.scores, aes(x= NMDS1, y = NMDS2))+
+  geom_point(size = 3, aes(colour = Population))+
+   scale_colour_manual(values = poppal)+
+  theme_flocom()
+```
+
+Figure 3: NMDS plot coloured by population ID. The populations are clearly grouped together, without overlap.
+
+The sampling population has a stronger effect on plant communities than the presence/absence of garlic mustard. Figure 3 shows a much clearer pattern of groups perfectly seperated by colour, compared to figure 2 which shows some grouping but still very mixed. 
+
